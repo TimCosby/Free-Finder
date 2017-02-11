@@ -1,3 +1,18 @@
+LIBRARIES = ['Architecture Bldg.', 'Astronomy & Astrophysics Building',
+             'Bahen Centre for Information Technology', 'Bissell Bldg.',
+             'Canadiana Gallery', 'Dentistry Bldg.', 'Earth Science Centre',
+             'Edward Johnson Bldg.', 'E.J. Pratt Library', 'Emmanuel College',
+             'Gerstein Science Information Centre', 'Graham Library',
+             'Hart House', 'Innis College', 'Kelly Library', 'Knox College',
+             'Koffler Student Services Centre', 'Lash Miller Chemistry Labs',
+             'Massey College', 'McLennan Physical Labs', 'North Borden Bldg.',
+             'Ontario Inst. For Studies In Education',
+             'Regis College - 100 Wellesley', 'Robarts Research Library',
+             'Rotman School of Management',
+             'Sandford Fleming', 'Sidney Smith Hall',
+             'T. Fisher Rare Books Library', 'UTS', 'University College',
+             'Wilson Hall-New College', '121 St George St', '500 University']
+
 def asort(answer, data):  # DROP DOWN LIST IN INTERFACE VER
     if 'most' in answer.lower():  # Shows wifi spots by most -> least
         data.sort(reverse=True, key=lambda x: x[1])
@@ -19,7 +34,7 @@ def show(answer, data):  # TOGGLE IN INTERFACE VER
     if 'only' in answer.lower() or 'lib' in answer.lower():  # Only shows Libraries alphabetically
         data.sort(key=lambda x: x[0])
         for items in data.copy():
-            if not 'library' in items[0].lower():
+            if not items[0] in LIBRARIES:
                 data.remove(items)
 
 
