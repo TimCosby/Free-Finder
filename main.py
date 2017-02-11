@@ -1,6 +1,7 @@
 from variables import set
 from variables import get
 from os import rmdir
+from time import sleep
 
 
 def initiate():
@@ -10,9 +11,8 @@ def initiate():
         total = get.connections(data, threads)
         answers = get.answers()
 
-        import time
         while any([x for x in threads if x.isAlive()]):
-            time.sleep(1)
+            sleep(1)
 
         rmdir('TemporaryFiles')
 
