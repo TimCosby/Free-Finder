@@ -1,16 +1,27 @@
 from variables import set
 from variables import get
+from os import rmdir
 
 
 def initiate():
     data = []
+    threads = []
     try:
-        total = get.connections(data)
+        total = get.connections(data, threads)
         answers = get.answers()
+
+        import time
+        while any([x for x in threads if x.isAlive()]):
+            time.sleep(1)
+
+        rmdir('TemporaryFiles')
+
         set.data(answers, data)
         set.output(total, data)
-    except: print('No WIFI')
-    return answers
+
+        return answers
+
+    except Exception as e: print(e)#print('No WIFI')
 
 
 def refresh(answers):
