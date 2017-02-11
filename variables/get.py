@@ -1,8 +1,11 @@
 import urllib
 from urllib.request import urlopen
-import os
+from os import remove
+from os import mkdir
+from os.path import exists
 
 URL = 'http://maps.wireless.utoronto.ca/stg/popUp.php?name='
+DIRECTORY = 'TemporaryFiles\\temp'
 PAGES = ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008',
          '0009', '0010', '0011', '0012', '0013', '0014', '0016', '0019',
          '0020', '0021', '0022', '0023', '0024', '0025', '0026', '0027',
@@ -94,43 +97,60 @@ BUILDINGS = ['University College', 'Hart House',
              'Near Music', 'New College Outside', 'Robarts Outside',
              'SMC Outside', 'Varsity', 'Victoria Outside', 'Woodsworth Outside',
              'Back Campus', 'Front Campus', 'Outside Student Union']
-QUESTIONS = ['Show all or only Libraries?', 'Range lowest:', 'Range highest:',
+QUESTIONS = ['Show all or only buildings with Libraries?', 'Range lowest:', 'Range highest:',
              'Search terms:', 'What sort? Alphabetic/Persons ' + \
              'Count(least/most)/Best Wifi/Relative to search?']
 
 
-def connections(data):  ### IN FINAL VERSION MAKE THIS PUSH FROM MAIN SERVER ONLY NEEDED DATA
+def pages(data, page):
+    urllib.request.urlretrieve(URL + PAGES[page], 'TemporaryFiles\\temp' + str(page) + '.txt')
+
+    # Give a progress bar
+    #print('Page: ' + str(page + 1) + '/' + str(len(PAGES)))
+
+    file = open(DIRECTORY + str(page) + '.txt', 'r')
+    for lines in file:
+        if lines[:13] != '<BODY BGCOLOR': pass
+        else:
+            start = lines.find('<BQ>') + 4  # GETS TOTAL CONNECTIONS
+            connections = int(lines[start:lines.find('<P>',start)])
+
+            avg = lines.find('P>A', start)  # Finds avg connections
+
+            if avg != -1:
+                avg = float(lines[lines.find(':', avg) + 2:lines.find('<P>',avg)])
+            else: avg = 0
+
+            data.append([BUILDINGS[page], connections, avg])  # Puts stuff into list
+
+    file.close()
+    remove(DIRECTORY + str(page) + '.txt')
+
+
+def connections(data, threads):  ### IN FINAL VERSION MAKE THIS PUSH FROM MAIN SERVER ONLY NEEDED DATA
+    import threading
+
+    if not exists('TemporaryFiles'):
+        mkdir('TemporaryFiles')
+
     for page in range(len(PAGES)):
-        urllib.request.urlretrieve(URL + PAGES[page], 'temp.txt')
+        # Makes threads galore
+        t = threading.Thread(target=pages, args=(data, page))
+        t.daemon = True
+        t.start()
+        threads.append(t)
 
-        print('Page: ' + str(page + 1) + '/' + str(len(PAGES)))
 
-        file = open('temp.txt', 'r')
-        for lines in file:
-            if lines[:13] != '<BODY BGCOLOR': pass
-            else:
-                start = lines.find('<BQ>') + 4  # GETS TOTAL CONNECTIONS
-                connections = int(lines[start:lines.find('<P>',start)])
-
-                avg = lines.find('P>A', start)  # Finds avg connections
-
-                if avg != -1:
-                    avg = float(lines[lines.find(':', avg) + 2:lines.find('<P>',avg)])
-                else: avg = 0
-
-                data.append([BUILDINGS[page], connections, avg])  # Puts stuff into list
-        file.close()
-
-    urllib.request.urlretrieve('http://maps.wireless.utoronto.ca/stg/index.php', 'temp.txt')
-    file = open('temp.txt', 'r')
+    urllib.request.urlretrieve('http://maps.wireless.utoronto.ca/stg/index.php', 'TemporaryFiles\\temp.txt')
+    file = open(DIRECTORY + '.txt', 'r')
     total = 0
 
-    for lines in file: # Get total
+    for lines in file:  # Get total
         if lines.find('Current Connections ') != -1:
             total = int(lines[lines.find('Current Connections ')+20:lines.find('</font>')])
     file.close()
 
-    os.remove('temp.txt')
+    remove(DIRECTORY + '.txt')
 
     return total
 
